@@ -7,6 +7,13 @@ import (
 	"time"
 )
 
+// The path accepts wildcards both '*' and '#'.
+// But we always use '*' for internal key for path.
+const (
+	anyChar  = "*"
+	anyChars = "*#"
+)
+
 // Operator represents comparison operators.
 type Operator uint8
 
@@ -130,7 +137,10 @@ func (m *ruleMap) lookupPath(p []string) *ruleMap {
 	for _, s := range p {
 		v, ok := m.tree[s]
 		if !ok {
-			return nil
+			v, ok = m.tree[anyChar]
+			if !ok {
+				return nil
+			}
 		}
 		m = v
 	}
@@ -147,7 +157,13 @@ func makeRules(rules []*Rule) *ruleMap {
 }
 
 func splitMetricName(s string) []string {
-	return strings.Split(s, ".")
+	a := strings.Split(s, ".")
+	for i, v := range a {
+		if strings.Contains(anyChars, v) {
+			a[i] = anyChar
+		}
+	}
+	return a
 }
 
 // Match checks validity of rules and metrics and returns any invalid data.

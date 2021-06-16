@@ -153,6 +153,40 @@ func TestMatch_path(t *testing.T) {
 			metrics: nil,
 			want:    nil,
 		},
+		{
+			name: "wildcard path",
+			rules: []*Rule{
+				{
+					Required: true,
+					Path:     "custom.#.writes.*",
+					Exprs: []*Expr{
+						{Op: LessEqual, Value: 3.0},
+					},
+				},
+				{
+					Required: true,
+					Path:     "custom.#.reads.*",
+					Exprs: []*Expr{
+						{Op: LessEqual, Value: 3.0},
+					},
+				},
+			},
+			metrics: []*Metric{
+				{Path: "custom.metric1.writes.bytes", Value: 3.0},
+				{Path: "custom.metric2.writes.blocks", Value: 3.0},
+			},
+			want: []*InvalidData{
+				{
+					Rule: &Rule{
+						Required: true,
+						Path:     "custom.#.reads.*",
+						Exprs: []*Expr{
+							{Op: LessEqual, Value: 3.0},
+						},
+					},
+				},
+			},
+		},
 	}
 
 	for _, tt := range tests {
