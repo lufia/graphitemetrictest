@@ -58,13 +58,6 @@ func TestRule_String(t *testing.T) {
 	}
 }
 
-func TestMatchEmpty(t *testing.T) {
-	r := Match([]*Rule{}, []*Metric{})
-	if len(r) != 0 {
-		t.Errorf("should match all rules if empty rules and metrics; but found invalid data: %v", r)
-	}
-}
-
 func TestMatch_path(t *testing.T) {
 	tests := []struct {
 		name    string
@@ -72,6 +65,12 @@ func TestMatch_path(t *testing.T) {
 		metrics []*Metric
 		want    []*InvalidData
 	}{
+		{
+			name:    "empty",
+			rules:   nil,
+			metrics: nil,
+			want:    nil,
+		},
 		{
 			name: "simple path/success",
 			rules: []*Rule{
