@@ -20,7 +20,7 @@ func TestRule_String(t *testing.T) {
 					{Op: LessThan, Value: 3.0},
 				},
 			},
-			s: "~a.b.c:<3",
+			s: "~a.b.c = <3",
 		},
 		{
 			name: "required",
@@ -31,7 +31,7 @@ func TestRule_String(t *testing.T) {
 					{Op: LessThan, Value: 3.0},
 				},
 			},
-			s: "a.b.c:<3",
+			s: "a.b.c = <3",
 		},
 		{
 			name: "operators",
@@ -45,7 +45,7 @@ func TestRule_String(t *testing.T) {
 					{Op: GreaterEqual, Value: -3.0},
 				},
 			},
-			s: "a.b.c:<3,<=2.15,>0,>=-3",
+			s: "a.b.c = <3,<=2.15,>0,>=-3",
 		},
 	}
 	for _, tt := range tests {

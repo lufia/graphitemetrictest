@@ -67,7 +67,7 @@ func (r *Rule) String() string {
 	if !r.Required {
 		flag = "~"
 	}
-	return fmt.Sprintf("%s%s:%v", flag, r.Path, strings.Join(exprs, ","))
+	return fmt.Sprintf("%s%s = %v", flag, r.Path, strings.Join(exprs, ","))
 }
 
 // Metric represents a metric of the protocol.
