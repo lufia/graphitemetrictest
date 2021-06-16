@@ -4,7 +4,6 @@ package graphitepickletest
 import (
 	"fmt"
 	"strings"
-	"time"
 )
 
 // The path accepts wildcards both '*' and '#'.
@@ -99,7 +98,7 @@ func (r *Rule) IsValid(value float64) bool {
 type Metric struct {
 	Path      string
 	Value     float64
-	Timestamp time.Time
+	Timestamp int64
 }
 
 // InvalidData contains invalid data.

@@ -1,0 +1,3 @@
+// ok
+custom.disk1.reads.bytes >0
+custom.disk1.writes.bytes

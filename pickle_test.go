@@ -110,7 +110,7 @@ func TestMatch_expr(t *testing.T) {
 		metric := &Metric{
 			Path:      "a.b.c",
 			Value:     tt.value,
-			Timestamp: time.Now(),
+			Timestamp: time.Now().Unix(),
 		}
 		a := Match([]*Rule{rule}, []*Metric{metric})
 		if tt.valid {
