@@ -47,6 +47,21 @@ type Expr struct {
 	Value float64
 }
 
+func (e *Expr) isValid(value float64) bool {
+	switch e.Op {
+	case LessThan:
+		return value < e.Value
+	case LessEqual:
+		return value <= e.Value
+	case GreaterThan:
+		return value > e.Value
+	case GreaterEqual:
+		return value >= e.Value
+	default:
+		panic("unknown operator")
+	}
+}
+
 // Rule represents a rule for matching each lines in the protocol message.
 //
 // BUGS(lufia): currently Path does not support tags syntax.
@@ -67,7 +82,17 @@ func (r *Rule) String() string {
 	if !r.Required {
 		flag = "~"
 	}
-	return fmt.Sprintf("%s%s = %v", flag, r.Path, strings.Join(exprs, ","))
+	return fmt.Sprintf("%s%s[%v]", flag, r.Path, strings.Join(exprs, ","))
+}
+
+// IsValid returns true if all expression are passed.
+func (r *Rule) IsValid(value float64) bool {
+	for _, e := range r.Exprs {
+		if !e.isValid(value) {
+			return false
+		}
+	}
+	return true
 }
 
 // Metric represents a metric of the protocol.
@@ -113,6 +138,16 @@ func (m *ruleMap) leaves() []*ruleMap {
 		a = append(a, v.leaves()...)
 	}
 	return a
+}
+
+// isValid returns true if any one of the rules.
+func (m *ruleMap) isValid(value float64) bool {
+	for _, r := range m.rules {
+		if r.IsValid(value) {
+			return true
+		}
+	}
+	return false
 }
 
 func (m *ruleMap) addRule(p []string, r *Rule) {
@@ -173,12 +208,18 @@ func Match(rules []*Rule, metrics []*Metric) []*InvalidData {
 	m := makeRules(rules)
 	for _, c := range metrics {
 		p := splitMetricName(c.Path)
-		r := m.lookupPath(p)
-		if r == nil || !r.isLeaf() {
+		v := m.lookupPath(p)
+		if v == nil || !v.isLeaf() {
 			results = append(results, &InvalidData{Metric: c})
 			continue
 		}
-		r.used++
+		v.used++
+		if !v.isValid(c.Value) {
+			for _, r := range v.rules {
+				results = append(results, &InvalidData{Rule: r, Metric: c})
+			}
+			continue
+		}
 	}
 	for _, l := range m.leaves() {
 		if l.required && l.used == 0 {

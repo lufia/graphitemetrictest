@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"reflect"
 	"testing"
+	"time"
 )
 
 func TestRule_String(t *testing.T) {
@@ -20,7 +21,7 @@ func TestRule_String(t *testing.T) {
 					{Op: LessThan, Value: 3.0},
 				},
 			},
-			s: "~a.b.c = <3",
+			s: "~a.b.c[<3]",
 		},
 		{
 			name: "required",
@@ -31,7 +32,7 @@ func TestRule_String(t *testing.T) {
 					{Op: LessThan, Value: 3.0},
 				},
 			},
-			s: "a.b.c = <3",
+			s: "a.b.c[<3]",
 		},
 		{
 			name: "operators",
@@ -45,7 +46,7 @@ func TestRule_String(t *testing.T) {
 					{Op: GreaterEqual, Value: -3.0},
 				},
 			},
-			s: "a.b.c = <3,<=2.15,>0,>=-3",
+			s: "a.b.c[<3,<=2.15,>0,>=-3]",
 		},
 	}
 	for _, tt := range tests {
@@ -55,6 +56,72 @@ func TestRule_String(t *testing.T) {
 				t.Errorf("%+v = %q; want %q", tt.rule, s, tt.s)
 			}
 		})
+	}
+}
+
+func TestMatch_expr(t *testing.T) {
+	tests := []struct {
+		exprs []*Expr
+		value float64
+		valid bool
+	}{
+		{
+			exprs: []*Expr{
+				{Op: LessThan, Value: 3.0},
+			},
+			value: 2.0,
+			valid: true,
+		},
+		{
+			exprs: []*Expr{
+				{Op: LessThan, Value: 3.0},
+			},
+			value: 3.0,
+			valid: false,
+		},
+		{
+			exprs: []*Expr{
+				{Op: LessEqual, Value: 3.0},
+			},
+			value: 3.0,
+			valid: true,
+		},
+		{
+			exprs: []*Expr{
+				{Op: GreaterThan, Value: 3.0},
+			},
+			value: 3.1,
+			valid: true,
+		},
+		{
+			exprs: []*Expr{
+				{Op: GreaterEqual, Value: 3.0},
+			},
+			value: 3.0,
+			valid: true,
+		},
+	}
+	for _, tt := range tests {
+		rule := &Rule{
+			Required: true,
+			Path:     "a.b.c",
+			Exprs:    tt.exprs,
+		}
+		metric := &Metric{
+			Path:      "a.b.c",
+			Value:     tt.value,
+			Timestamp: time.Now(),
+		}
+		a := Match([]*Rule{rule}, []*Metric{metric})
+		if tt.valid {
+			if len(a) > 0 {
+				t.Errorf("a value %g was not matched for rule={%v}", tt.value, rule)
+			}
+		} else {
+			if len(a) == 0 {
+				t.Errorf("a value %g was matched for rule={%v}; but it shouldn't", tt.value, rule)
+			}
+		}
 	}
 }
 
@@ -97,11 +164,19 @@ func TestMatch_path(t *testing.T) {
 						{Op: LessEqual, Value: 3.0},
 					},
 				},
+				{
+					Required: true,
+					Path:     "custom.metric3.value",
+					Exprs: []*Expr{
+						{Op: LessEqual, Value: 2.0},
+					},
+				},
 			},
 			metrics: []*Metric{
 				{Path: "custom.metric1.value1", Value: 3.0},
 				{Path: "custom.metric2.value", Value: 3.0},
 				{Path: "custom.metric1", Value: 3.0},
+				{Path: "custom.metric3.value", Value: 3.0},
 			},
 			want: []*InvalidData{
 				{
@@ -121,6 +196,16 @@ func TestMatch_path(t *testing.T) {
 				},
 				{
 					Metric: &Metric{Path: "custom.metric1", Value: 3.0},
+				},
+				{
+					Rule: &Rule{
+						Required: true,
+						Path:     "custom.metric3.value",
+						Exprs: []*Expr{
+							{Op: LessEqual, Value: 2.0},
+						},
+					},
+					Metric: &Metric{Path: "custom.metric3.value", Value: 3.0},
 				},
 			},
 		},
@@ -186,6 +271,29 @@ func TestMatch_path(t *testing.T) {
 				},
 			},
 		},
+		{
+			name: "same paths(OR condition)",
+			rules: []*Rule{
+				{
+					Required: true,
+					Path:     "custom.disk1.writes.bytes",
+					Exprs: []*Expr{
+						{Op: LessEqual, Value: 0.0},
+					},
+				},
+				{
+					Required: true,
+					Path:     "custom.disk1.writes.bytes",
+					Exprs: []*Expr{
+						{Op: GreaterEqual, Value: 512.0},
+					},
+				},
+			},
+			metrics: []*Metric{
+				{Path: "custom.disk1.writes.bytes", Value: 1024.0},
+			},
+			want: nil,
+		},
 	}
 
 	for _, tt := range tests {
@@ -228,13 +336,13 @@ func diffInvalidData(a1, a2 []*InvalidData) []*InvalidData {
 func (p *InvalidData) String() string {
 	s := ""
 	if p.Rule != nil {
-		s += fmt.Sprintf("rule={%v}", p.Rule)
+		s += fmt.Sprintf("rule = %v", p.Rule)
 	}
 	if p.Metric != nil {
 		if s != "" {
 			s += " "
 		}
-		s += fmt.Sprintf("value={%s=%g}", p.Metric.Path, p.Metric.Value)
+		s += fmt.Sprintf("value = %s=%g", p.Metric.Path, p.Metric.Value)
 	}
 	return s
 }
