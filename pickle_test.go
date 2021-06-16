@@ -84,10 +84,7 @@ func TestMatch_path(t *testing.T) {
 				},
 			},
 			metrics: []*Metric{
-				{
-					Path:  "custom.metric1.value",
-					Value: 3.0,
-				},
+				{Path: "custom.metric1.value", Value: 3.0},
 			},
 			want: nil,
 		},
@@ -103,18 +100,9 @@ func TestMatch_path(t *testing.T) {
 				},
 			},
 			metrics: []*Metric{
-				{
-					Path:  "custom.metric1.value1",
-					Value: 3.0,
-				},
-				{
-					Path:  "custom.metric2.value",
-					Value: 3.0,
-				},
-				{
-					Path:  "custom.metric1",
-					Value: 3.0,
-				},
+				{Path: "custom.metric1.value1", Value: 3.0},
+				{Path: "custom.metric2.value", Value: 3.0},
+				{Path: "custom.metric1", Value: 3.0},
 			},
 			want: []*InvalidData{
 				{
@@ -127,24 +115,43 @@ func TestMatch_path(t *testing.T) {
 					},
 				},
 				{
-					Metric: &Metric{
-						Path:  "custom.metric1.value1",
-						Value: 3.0,
-					},
+					Metric: &Metric{Path: "custom.metric1.value1", Value: 3.0},
 				},
 				{
-					Metric: &Metric{
-						Path:  "custom.metric2.value",
-						Value: 3.0,
-					},
+					Metric: &Metric{Path: "custom.metric2.value", Value: 3.0},
 				},
 				{
-					Metric: &Metric{
-						Path:  "custom.metric1",
-						Value: 3.0,
+					Metric: &Metric{Path: "custom.metric1", Value: 3.0},
+				},
+			},
+		},
+		{
+			name: "optional path/matched",
+			rules: []*Rule{
+				{
+					Path: "custom.metric1.value",
+					Exprs: []*Expr{
+						{Op: LessEqual, Value: 3.0},
 					},
 				},
 			},
+			metrics: []*Metric{
+				{Path: "custom.metric1.value", Value: 3.0},
+			},
+			want: []*InvalidData{},
+		},
+		{
+			name: "optional path/passed",
+			rules: []*Rule{
+				{
+					Path: "custom.metric1.value",
+					Exprs: []*Expr{
+						{Op: LessEqual, Value: 3.0},
+					},
+				},
+			},
+			metrics: nil,
+			want:    nil,
 		},
 	}
 

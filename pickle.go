@@ -165,7 +165,7 @@ func Match(rules []*Rule, metrics []*Metric) []*InvalidData {
 		r.used++
 	}
 	for _, l := range m.leaves() {
-		if l.used == 0 { // TODO: r.required
+		if l.required && l.used == 0 {
 			for _, r := range l.rules {
 				results = append(results, &InvalidData{Rule: r})
 			}
