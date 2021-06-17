@@ -1,12 +1,15 @@
 // graphite-metric-test is a verifier for Graphite Plaintext Protocol format.
 //
-// Usage:
+// Usage
 //
 //	graphite-metric-test [-f rule] [file ...]
 //
-// The rule option is a file contains rules with metric path patterns and metric value ranges.
-// graphite-metric-test reads the rules, reads metrics (from stdin by default),
-// verify them and reports mismatches.
+// graphite-metric-test reads the rules, reads metrics from stdin by default, and verify them.
+// Then it ends up reports missing metrics, unexpected metrics or out of range metrics.
+//
+// Options
+//
+// The -f option is a file contains rules with metric path patterns and metric value ranges.
 //
 // The Rules
 //
@@ -23,7 +26,9 @@
 //	local.signal.level		>=0, <2
 //	local.signal.level		>=3, <5
 //
-// Finally, the operators are '<=', '<', '>=' and '>'.
+// The Operators
+//
+// The operators are '<=', '<', '>=' and '>'.
 package main
 
 import (
