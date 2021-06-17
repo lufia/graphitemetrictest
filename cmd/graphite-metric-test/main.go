@@ -42,8 +42,15 @@ import (
 
 var (
 	flagFile = flag.String("f", "metricrules", "a pattern `file` for metrics")
-	argv0    = filepath.Base(os.Args[0])
+
+	argv0   = filepath.Base(os.Args[0])
+	nerrors int
 )
+
+func logf(format string, args ...interface{}) {
+	log.Printf(format, args...)
+	nerrors++
+}
 
 func usage() {
 	fmt.Fprintf(flag.CommandLine.Output(), "usage: %s [options] [file ...]\n", argv0)
@@ -60,29 +67,33 @@ func main() {
 	if err != nil {
 		log.Fatalf("cannot open %s: %v", *flagFile, err)
 	}
-	defer f.Close()
 	rules, err := graphitemetrictest.Parse(f)
 	if err != nil {
 		log.Fatalf("cannot parse %s: %v", *flagFile, err)
 	}
+	f.Close()
 
 	if flag.NArg() == 0 {
 		log.SetPrefix(fmt.Sprintf("%s: %s: ", argv0, "<stdin>"))
-		checkMetrics(rules, os.Stdin, "<stdin>")
+		checkMetrics(rules, os.Stdin)
 	} else {
 		for _, file := range flag.Args() {
 			f, err = os.Open(file)
 			if err != nil {
-				log.Fatalf("cannot open %s: %v", file, err)
+				logf("cannot open %s: %v", file, err)
+				continue
 			}
 			log.SetPrefix(fmt.Sprintf("%s: %s: ", argv0, file))
-			checkMetrics(rules, f, file)
+			checkMetrics(rules, f)
 			f.Close()
 		}
 	}
+	if nerrors > 0 {
+		os.Exit(1)
+	}
 }
 
-func checkMetrics(rules []*graphitemetrictest.Rule, r io.Reader, file string) {
+func checkMetrics(rules []*graphitemetrictest.Rule, r io.Reader) {
 	var metrics []*graphitemetrictest.Metric
 
 	f := bufio.NewScanner(r)
@@ -93,37 +104,38 @@ func checkMetrics(rules []*graphitemetrictest.Rule, r io.Reader, file string) {
 		}
 		a := strings.Fields(s)
 		if len(a) != 3 {
-			log.Fatalf("%s: a metric must be constructed three fields\n", s)
+			logf("%s: a metric must be constructed three fields\n", s)
+			continue
 		}
-		n, err := strconv.ParseFloat(a[1], 64)
+		value, err := strconv.ParseFloat(a[1], 64)
 		if err != nil {
-			log.Fatalf("%s: %v\n", s, err)
+			logf("%s: %v\n", s, err)
+			continue
 		}
-		t, err := strconv.ParseInt(a[2], 10, 64)
+		tick, err := strconv.ParseInt(a[2], 10, 64)
 		if err != nil {
-			log.Fatalf("%s: %v\n", s, err)
+			logf("%s: %v\n", s, err)
+			continue
 		}
 		metrics = append(metrics, &graphitemetrictest.Metric{
 			Path:      a[0],
-			Value:     n,
-			Timestamp: t,
+			Value:     value,
+			Timestamp: tick,
 		})
 	}
 	if err := f.Err(); err != nil {
-		log.Fatalf("%v\n", err)
+		logf("an error occurs while reading: %v\n", err)
+		return
 	}
 
-	a := graphitemetrictest.Diff(rules, metrics)
-	for _, d := range a {
+	diffs := graphitemetrictest.Diff(rules, metrics)
+	for _, d := range diffs {
 		if d.Rule != nil && d.Metric != nil {
-			log.Printf("metric %v is invalid for rule %v\n", d.Metric, d.Rule)
+			logf("metric %v is violated for rule %v\n", d.Metric, d.Rule)
 		} else if d.Rule == nil {
-			log.Printf("metric %v is not expected\n", d.Metric)
+			logf("found unexpected metric %v\n", d.Metric)
 		} else {
-			log.Printf("rule %v is not matched\n", d.Rule)
+			logf("rule %v is not matched any metrics\n", d.Rule)
 		}
-	}
-	if len(a) > 0 {
-		os.Exit(1)
 	}
 }
