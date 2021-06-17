@@ -1,5 +1,5 @@
-// Package graphitepickletest provides utilities to test Graphite Pickle Protocol message.
-package graphitepickletest
+// Package graphitemetrictest provides utilities to test Graphite Plaintext Protocol message.
+package graphitemetrictest
 
 import (
 	"fmt"

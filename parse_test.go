@@ -1,4 +1,4 @@
-package graphitepickletest
+package graphitemetrictest
 
 import (
 	"reflect"

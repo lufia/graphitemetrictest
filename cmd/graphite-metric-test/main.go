@@ -37,7 +37,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/lufia/graphitepickletest"
+	"github.com/lufia/graphitemetrictest"
 )
 
 var (
@@ -61,7 +61,7 @@ func main() {
 		log.Fatalf("cannot open %s: %v", *flagFile, err)
 	}
 	defer f.Close()
-	rules, err := graphitepickletest.Parse(f)
+	rules, err := graphitemetrictest.Parse(f)
 	if err != nil {
 		log.Fatalf("cannot parse %s: %v", *flagFile, err)
 	}
@@ -82,8 +82,8 @@ func main() {
 	}
 }
 
-func checkMetrics(rules []*graphitepickletest.Rule, r io.Reader, file string) {
-	var metrics []*graphitepickletest.Metric
+func checkMetrics(rules []*graphitemetrictest.Rule, r io.Reader, file string) {
+	var metrics []*graphitemetrictest.Metric
 
 	f := bufio.NewScanner(r)
 	for f.Scan() {
@@ -103,7 +103,7 @@ func checkMetrics(rules []*graphitepickletest.Rule, r io.Reader, file string) {
 		if err != nil {
 			log.Fatalf("%s: %v\n", s, err)
 		}
-		metrics = append(metrics, &graphitepickletest.Metric{
+		metrics = append(metrics, &graphitemetrictest.Metric{
 			Path:      a[0],
 			Value:     n,
 			Timestamp: t,
@@ -113,7 +113,7 @@ func checkMetrics(rules []*graphitepickletest.Rule, r io.Reader, file string) {
 		log.Fatalf("%v\n", err)
 	}
 
-	a := graphitepickletest.Match(rules, metrics)
+	a := graphitemetrictest.Match(rules, metrics)
 	for _, d := range a {
 		if d.Rule != nil && d.Metric != nil {
 			log.Printf("metric %v cannot be passed for rule %v\n", d.Metric, d.Rule)
