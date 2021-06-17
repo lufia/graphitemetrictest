@@ -342,7 +342,7 @@ func (p *InvalidData) String() string {
 		if s != "" {
 			s += " "
 		}
-		s += fmt.Sprintf("value = %s=%g", p.Metric.Path, p.Metric.Value)
+		s += fmt.Sprintf("value = %v", p.Metric)
 	}
 	return s
 }

@@ -61,6 +61,11 @@ func (e *Expr) isValid(value float64) bool {
 	}
 }
 
+// String returns the representation of the expression.
+func (e *Expr) String() string {
+	return fmt.Sprintf("%v%g", e.Op, e.Value)
+}
+
 // Rule represents a rule for matching each lines in the protocol message.
 //
 // BUGS(lufia): currently Path does not support tags syntax.
@@ -74,7 +79,7 @@ type Rule struct {
 func (r *Rule) String() string {
 	exprs := make([]string, len(r.Exprs))
 	for i, e := range r.Exprs {
-		exprs[i] = fmt.Sprintf("%s%g", e.Op, e.Value)
+		exprs[i] = e.String()
 	}
 
 	flag := ""
@@ -99,6 +104,11 @@ type Metric struct {
 	Path      string
 	Value     float64
 	Timestamp int64
+}
+
+// String returns the string representation of the metric.
+func (m *Metric) String() string {
+	return fmt.Sprintf("%s=%g", m.Path, m.Value)
 }
 
 // InvalidData contains invalid data.

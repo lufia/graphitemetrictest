@@ -116,9 +116,9 @@ func checkMetrics(rules []*graphitemetrictest.Rule, r io.Reader, file string) {
 	a := graphitemetrictest.Match(rules, metrics)
 	for _, d := range a {
 		if d.Rule != nil && d.Metric != nil {
-			log.Printf("metric %v cannot be passed for rule %v\n", d.Metric, d.Rule)
+			log.Printf("metric %v is invalid for rule %v\n", d.Metric, d.Rule)
 		} else if d.Rule == nil {
-			log.Printf("metric %s is not expected\n", d.Metric.Path)
+			log.Printf("metric %v is not expected\n", d.Metric)
 		} else {
 			log.Printf("rule %v is not matched\n", d.Rule)
 		}
