@@ -113,7 +113,7 @@ func checkMetrics(rules []*graphitemetrictest.Rule, r io.Reader, file string) {
 		log.Fatalf("%v\n", err)
 	}
 
-	a := graphitemetrictest.Match(rules, metrics)
+	a := graphitemetrictest.Diff(rules, metrics)
 	for _, d := range a {
 		if d.Rule != nil && d.Metric != nil {
 			log.Printf("metric %v is invalid for rule %v\n", d.Metric, d.Rule)

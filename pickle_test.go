@@ -59,7 +59,7 @@ func TestRule_String(t *testing.T) {
 	}
 }
 
-func TestMatch_expr(t *testing.T) {
+func TestDiff_expr(t *testing.T) {
 	tests := []struct {
 		exprs []*Expr
 		value float64
@@ -112,7 +112,7 @@ func TestMatch_expr(t *testing.T) {
 			Value:     tt.value,
 			Timestamp: time.Now().Unix(),
 		}
-		a := Match([]*Rule{rule}, []*Metric{metric})
+		a := Diff([]*Rule{rule}, []*Metric{metric})
 		if tt.valid {
 			if len(a) > 0 {
 				t.Errorf("a value %g was not matched for rule={%v}", tt.value, rule)
@@ -125,7 +125,7 @@ func TestMatch_expr(t *testing.T) {
 	}
 }
 
-func TestMatch_path(t *testing.T) {
+func TestDiff_path(t *testing.T) {
 	tests := []struct {
 		name    string
 		rules   []*Rule
@@ -298,7 +298,7 @@ func TestMatch_path(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			a := Match(tt.rules, tt.metrics)
+			a := Diff(tt.rules, tt.metrics)
 			checkResults(t, "only result", a, tt.want)
 			checkResults(t, "only expected", tt.want, a)
 		})

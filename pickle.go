@@ -210,8 +210,8 @@ func splitMetricName(s string) []string {
 	return a
 }
 
-// Match checks validity of rules and metrics and returns any invalid data.
-func Match(rules []*Rule, metrics []*Metric) []*InvalidData {
+// Diff checks validity of rules and metrics and returns any invalid data.
+func Diff(rules []*Rule, metrics []*Metric) []*InvalidData {
 	var results []*InvalidData
 
 	m := makeRules(rules)
