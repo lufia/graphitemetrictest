@@ -6,7 +6,7 @@ import (
 	"testing"
 )
 
-func TestParse_line(t *testing.T) {
+func TestReadRules_line(t *testing.T) {
 	tests := []struct {
 		in    string
 		rules []*Rule
@@ -82,12 +82,12 @@ func TestParse_line(t *testing.T) {
 	}
 	for _, tt := range tests {
 		f := strings.NewReader(tt.in)
-		a, err := Parse(f)
+		a, err := ReadRules(f)
 		if err != nil {
-			t.Fatalf("Parse(%q): %v", tt.in, err)
+			t.Fatalf("ReadRules(%q): %v", tt.in, err)
 		}
 		if !reflect.DeepEqual(a, tt.rules) {
-			t.Errorf("Parse(%q) = %v; want %v", tt.in, a, tt.rules)
+			t.Errorf("ReadRules(%q) = %v; want %v", tt.in, a, tt.rules)
 		}
 	}
 }

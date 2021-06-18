@@ -10,8 +10,8 @@ import (
 	"unicode"
 )
 
-// Parse reads r and returns rules.
-func Parse(r io.Reader) ([]*Rule, error) {
+// ReadRules reads r and returns rules.
+func ReadRules(r io.Reader) ([]*Rule, error) {
 	var rules []*Rule
 
 	f := bufio.NewReader(r)

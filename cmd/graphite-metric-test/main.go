@@ -72,7 +72,7 @@ func main() {
 	if err != nil {
 		log.Fatalf("cannot open %s: %v", *flagFile, err)
 	}
-	rules, err := graphitemetrictest.Parse(f)
+	rules, err := graphitemetrictest.ReadRules(f)
 	if err != nil {
 		log.Fatalf("cannot parse %s: %v", *flagFile, err)
 	}
