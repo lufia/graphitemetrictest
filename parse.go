@@ -254,7 +254,9 @@ func skipFunc(r *bufio.Reader, f func(c rune) bool) error {
 			return err
 		}
 		if !f(c) {
-			r.UnreadRune()
+			if err := r.UnreadRune(); err != nil {
+				return err
+			}
 			break
 		}
 	}

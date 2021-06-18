@@ -136,7 +136,7 @@ func checkMetrics(rules []*graphitemetrictest.Rule, r io.Reader) {
 	diffs := graphitemetrictest.Diff(rules, metrics)
 	for _, d := range diffs {
 		if d.Rule != nil && d.Metric != nil {
-			logf("metric %v is violated for rule %v\n", d.Metric, d.Rule)
+			logf("metric %v is violated to rule %v\n", d.Metric, d.Rule)
 		} else if d.Rule == nil {
 			logf("found unexpected metric %v\n", d.Metric)
 		} else {
