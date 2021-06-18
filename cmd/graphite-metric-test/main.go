@@ -32,15 +32,12 @@
 package main
 
 import (
-	"bufio"
 	"flag"
 	"fmt"
 	"io"
 	"log"
 	"os"
 	"path/filepath"
-	"strconv"
-	"strings"
 
 	"github.com/lufia/graphitemetrictest"
 )
@@ -99,37 +96,9 @@ func main() {
 }
 
 func checkMetrics(rules []*graphitemetrictest.Rule, r io.Reader) {
-	var metrics []*graphitemetrictest.Metric
-
-	f := bufio.NewScanner(r)
-	for f.Scan() {
-		s := strings.TrimSpace(f.Text())
-		if s == "" {
-			continue
-		}
-		a := strings.Fields(s)
-		if len(a) != 3 {
-			logf("%s: a metric must be constructed three fields\n", s)
-			continue
-		}
-		value, err := strconv.ParseFloat(a[1], 64)
-		if err != nil {
-			logf("%s: %v\n", s, err)
-			continue
-		}
-		tick, err := strconv.ParseInt(a[2], 10, 64)
-		if err != nil {
-			logf("%s: %v\n", s, err)
-			continue
-		}
-		metrics = append(metrics, &graphitemetrictest.Metric{
-			Path:      a[0],
-			Value:     value,
-			Timestamp: tick,
-		})
-	}
-	if err := f.Err(); err != nil {
-		logf("an error occurs while reading: %v\n", err)
+	metrics, err := graphitemetrictest.ReadMetrics(r)
+	if err != nil {
+		logf("cannot parse metrics: %v", err)
 		return
 	}
 

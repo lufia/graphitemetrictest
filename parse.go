@@ -10,6 +10,58 @@ import (
 	"unicode"
 )
 
+// ParseError is returned for parsing errors.
+type ParseError struct {
+	Line int
+	Err  error
+}
+
+// Error returns a string representation of an error.
+func (e *ParseError) Error() string {
+	return fmt.Sprintf("parse error on line %d: %v", e.Line, e.Err)
+}
+
+// Unwrap returns an error.
+func (e *ParseError) Unwrap() error { return e.Err }
+
+var errFields = errors.New("a metric must be consisted of three fields")
+
+// ReadMetrics reads r and returns metrics.
+func ReadMetrics(r io.Reader) ([]*Metric, error) {
+	var metrics []*Metric
+
+	lineno := 0
+	f := bufio.NewScanner(r)
+	for f.Scan() {
+		lineno++
+		s := strings.TrimSpace(f.Text())
+		if s == "" {
+			continue
+		}
+		a := strings.Fields(s)
+		if len(a) != 3 {
+			return nil, &ParseError{Line: lineno, Err: errFields}
+		}
+		value, err := strconv.ParseFloat(a[1], 64)
+		if err != nil {
+			return nil, &ParseError{Line: lineno, Err: err}
+		}
+		tick, err := strconv.ParseInt(a[2], 10, 64)
+		if err != nil {
+			return nil, &ParseError{Line: lineno, Err: err}
+		}
+		metrics = append(metrics, &Metric{
+			Path:      a[0],
+			Value:     value,
+			Timestamp: tick,
+		})
+	}
+	if err := f.Err(); err != nil {
+		return nil, &ParseError{Line: lineno, Err: err}
+	}
+	return metrics, nil
+}
+
 // ReadRules reads r and returns rules.
 func ReadRules(r io.Reader) ([]*Rule, error) {
 	var rules []*Rule
